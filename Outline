@@ -1,0 +1,607 @@
+#region VEXcode Generated Robot Configuration
+from vex import *
+import urandom
+
+# Brain should be defined by default
+brain=Brain()
+
+# Robot configuration code
+f_left = Motor(Ports.PORT4, GearSetting.RATIO_6_1, False)
+b_left = Motor(Ports.PORT5, GearSetting.RATIO_6_1, False)
+b_right = Motor(Ports.PORT6, GearSetting.RATIO_6_1, False)
+f_right = Motor(Ports.PORT7, GearSetting.RATIO_18_1, False)
+intakes_motor_a = Motor(Ports.PORT11, GearSetting.RATIO_18_1, False)
+intakes_motor_b = Motor(Ports.PORT10, GearSetting.RATIO_18_1, False)
+intakes = MotorGroup(intakes_motor_a, intakes_motor_b)
+sling = Motor(Ports.PORT3, GearSetting.RATIO_36_1, False)
+climbing_motor_a = Motor(Ports.PORT1, GearSetting.RATIO_18_1, False)
+climbing_motor_b = Motor(Ports.PORT12, GearSetting.RATIO_18_1, False)
+climbing = MotorGroup(climbing_motor_a, climbing_motor_b)
+flapjack_1 = DigitalOut(brain.three_wire_port.a)
+flapjack_2 = DigitalOut(brain.three_wire_port.b)
+inertial_one = Inertial(Ports.PORT8)
+controller_1 = Controller(PRIMARY)
+sling_limit = Limit(brain.three_wire_port.c)
+inertial_two = Inertial(Ports.PORT2)
+
+
+# wait for rotation sensor to fully initialize
+wait(30, MSEC)
+#endregion VEXcode Generated Robot Configuration
+
+# Library imports
+from vex import *
+import urandom
+
+# Begin project code
+
+#Wait for sensor initializaiton
+wait(30, MSEC)
+
+#vex imoprts
+import math
+
+# Begin project Code
+
+doug = 0
+
+# functions
+
+#Drive train motor braking functions
+def Reset():
+    f_left.set_position(0, DEGREES)
+    f_right.set_position(0, DEGREES)
+    b_left.set_position(0, DEGREES)
+    b_right.set_position(0, DEGREES)
+
+def Stop():
+    f_left.stop()
+    f_right.stop()
+    b_left.stop()
+    b_right.stop()
+
+def braking_mode(m):
+    f_left.set_stopping(m)
+    f_right.set_stopping(m)
+    b_left.set_stopping(m)
+    b_right.set_stopping(m)
+
+# Forward functions
+def forward(d, s):
+
+    Reset()
+
+    f_left.set_velocity(s, PERCENT)
+    f_right.set_velocity(s, PERCENT)
+    b_left.set_velocity(s, PERCENT)
+    b_right.set_velocity(s, PERCENT)
+
+    f_left.spin_for(FORWARD, d, DEGREES, wait=False)
+    f_right.spin_for(FORWARD, d, DEGREES, wait=False)
+    b_left.spin_for(FORWARD, d, DEGREES, wait=False)
+    b_right.spin_for(FORWARD, d, DEGREES, wait=True)
+
+    Stop()
+
+def forwardtime(d, s, t):
+
+    Reset()
+
+    f_left.set_velocity(s, PERCENT)
+    f_right.set_velocity(s, PERCENT)
+    b_left.set_velocity(s, PERCENT)
+    b_right.set_velocity(s, PERCENT)
+
+    f_left.set_timeout(s, SECONDS)
+    f_right.set_timeout(s, SECONDS)
+    b_left.set_timeout(s, SECONDS)
+    b_right.set_timeout(s, SECONDS)
+
+    f_left.spin_for(FORWARD, d, DEGREES, wait=False)
+    f_right.spin_for(FORWARD, d, DEGREES, wait=False)
+    b_left.spin_for(FORWARD, d, DEGREES, wait=False)
+    b_right.spin_for(FORWARD, d, DEGREES, wait=True)
+
+    Stop()
+
+def leftforward(s, d, t):
+    f_left.set_velocity(s, PERCENT)
+    b_left.set_velocity(s, PERCENT)
+
+    f_left.set_timeout(t, SECONDS)
+    b_left.set_timeout(t, SECONDS)
+
+    f_left.spin_for(FORWARD, d, DEGREES, wait=False)
+    b_left.spin_for(FORWARD, d, DEGREES, wait=False)
+
+def rightforward(s, d, t):
+    f_right.set_velocity(s, PERCENT)
+    b_right.set_velocity(s, PERCENT)
+
+    f_right.set_timeout(t, SECONDS)
+    b_right.set_timeout(t, SECONDS)
+
+    f_right.spin_for(FORWARD, d, DEGREES, wait=False)
+    b_right.spin_for(FORWARD, d, DEGREES, wait=False)
+
+# Reverse functions
+def reverse(d, s):
+
+    Reset()
+
+    f_left.set_velocity(s, PERCENT)
+    f_right.set_velocity(s, PERCENT)
+    b_left.set_velocity(s, PERCENT)
+    b_right.set_velocity(s, PERCENT)
+
+    f_left.spin_for(REVERSE, d, DEGREES, wait=False)
+    f_right.spin_for(REVERSE, d, DEGREES, wait=False)
+    b_left.spin_for(REVERSE, d, DEGREES, wait=False)
+    b_right.spin_for(REVERSE, d, DEGREES, wait=True)
+
+    Stop()
+
+def reversetime(d, s, t):
+
+    Reset()
+
+    f_left.set_velocity(s, PERCENT)
+    f_right.set_velocity(s, PERCENT)
+    b_left.set_velocity(s, PERCENT)
+    b_right.set_velocity(s, PERCENT)
+
+    f_left.set_timeout(s, SECONDS)
+    f_right.set_timeout(s, SECONDS)
+    b_left.set_timeout(s, SECONDS)
+    b_right.set_timeout(s, SECONDS)
+
+    f_left.spin_for(REVERSE, d, DEGREES, wait=False)
+    f_right.spin_for(REVERSE, d, DEGREES, wait=False)
+    b_left.spin_for(REVERSE, d, DEGREES, wait=False)
+    b_right.spin_for(REVERSE, d, DEGREES, wait=True)
+
+    Stop()
+
+def leftreverse(s, d, t):
+    f_left.set_velocity(s, PERCENT)
+    b_left.set_velocity(s, PERCENT)
+
+    f_left.set_timeout(t, SECONDS)
+    b_left.set_timeout(t, SECONDS)
+
+    f_left.spin_for(REVERSE, d, DEGREES, wait=False)
+    b_left.spin_for(REVERSE, d, DEGREES, wait=False)
+
+def rightreverse(s, d, t):
+    f_right.set_velocity(s, PERCENT)
+    b_right.set_velocity(s, PERCENT)
+
+    f_right.set_timeout(t, SECONDS)
+    b_right.set_timeout(t, SECONDS)
+
+    f_right.spin_for(REVERSE, d, DEGREES, wait=False)
+    b_right.spin_for(REVERSE, d, DEGREES, wait=False)
+
+def ifwd(d, s, h):
+    
+    Reset()
+
+    while (((f_left + b_left) / 2) + ((f_right + b_right) / 2)) < d:
+        f_left.spin(FORWARD)
+        f_right.spin(FORWARD)
+        b_left.spin(FORWARD)
+        b_right.spin(FORWARD)
+
+        pwr = abs(h - inertial_one.rotation(DEGREES))
+        if pwr > 100:
+            pwr = 100
+        
+        if inertial_one.rotation(DEGREES) > (.4 +h):
+            f_left.set_velocity(s, PERCENT)
+            b_left.set_velocity(s, PERCENT)
+            b_right.set_velocity(s + pwr, PERCENT)
+            f_right.set_velocity(s + pwr, PERCENT)
+
+        elif inertial_one.rotation(DEGREES) > (.4 + h):
+            f_left.set_velocity(s + pwr, PERCENT)
+            b_left.set_velocity(s + pwr, PERCENT)
+            b_right.set_velocity(s, PERCENT)
+            f_right.set_velocity(s, PERCENT)
+
+        else:
+            f_left.set_velocity(s, PERCENT)
+            b_left.set_velocity(s, PERCENT)
+            b_right.set_velocity(s, PERCENT)
+            f_right.set_velocity(s, PERCENT)
+
+        if sling_limit.pressing() == False:
+            sling.set_velocity(75, PERCENT)
+
+    Stop()
+
+def irev(d, s, h):
+    
+    Reset()
+
+    while (((f_left + b_left) / 2) + ((f_right + b_right) / 2)) > -d:
+        f_left.spin(FORWARD)
+        f_right.spin(FORWARD)
+        b_left.spin(FORWARD)
+        b_right.spin(FORWARD)
+
+        pwr = abs(h - inertial_one.rotation(DEGREES))
+        if pwr > 100:
+            pwr = 100
+        
+        if inertial_one.rotation(DEGREES) > (.4 +h):
+            f_left.set_velocity(-s - pwr, PERCENT)
+            b_left.set_velocity(-s - pwr, PERCENT)
+            b_right.set_velocity(-s, PERCENT)
+            f_right.set_velocity(-s, PERCENT)
+
+        elif inertial_one.rotation(DEGREES) > (.4 + h):
+            f_left.set_velocity(-s, PERCENT)
+            b_left.set_velocity(-s, PERCENT)
+            b_right.set_velocity(-s - pwr, PERCENT)
+            f_right.set_velocity(-s - pwr, PERCENT)
+
+        else:
+            f_left.set_velocity(-s, PERCENT)
+            b_left.set_velocity(-s, PERCENT)
+            b_right.set_velocity(-s, PERCENT)
+            f_right.set_velocity(-s, PERCENT)
+
+        if sling_limit.pressing() == False:
+            sling.set_velocity(75, PERCENT)
+
+    Stop()
+
+#intake and shooting functions
+
+def Intakes(s,d):
+    intakes.set_velocity(s, PERCENT)
+    intakes.spin(d)
+
+def Intakesstop():
+    intakes.set_velocity(0, PERCENT)
+    intakes.stop()
+
+def shoot():
+    sling.spin_for(FORWARD, 100, DEGREES, wait=True)
+
+def shootcontinue():
+    sling.set_velocity(100, PERCENT)
+    sling.spin(forward)
+
+# Turning functions
+def irightslow(h, s):
+    Reset()
+
+    while inertial_one.rotation(DEGREES) < h-.3:
+        pwr = (abs(h - inertial_one.rotation(DEGREES) * s) + 3)
+        if pwr > 40:
+            pwr = 40
+        
+        f_left.set_velocity(pwr, PERCENT)
+        f_right.set_velocity(pwr, PERCENT)
+        b_left.set_velocity(-pwr, PERCENT)
+        b_right.set_velocity(-pwr, PERCENT)
+
+        f_left.spin(FORWARD)
+        f_right.spin(FORWARD)
+        b_left.spin(FORWARD)
+        b_right.spin(FORWARD)
+
+        if sling_limit.pressing() == False:
+            sling.set_velocity(75, PERCENT)
+        else: 
+            sling.stop()
+
+    Stop()
+    wait(.05, SECONDS)
+
+    while inertial_one.rotation(DEGREES) > h-.3:
+        pwr = (abs(h - inertial_one.rotation(DEGREES) * s) + 3)
+        if pwr > 40:
+            pwr = 40
+        
+        f_left.set_velocity(-pwr, PERCENT)
+        f_right.set_velocity(-pwr, PERCENT)
+        b_left.set_velocity(pwr, PERCENT)
+        b_right.set_velocity(pwr, PERCENT)
+
+        f_left.spin(FORWARD)
+        f_right.spin(FORWARD)
+        b_left.spin(FORWARD)
+        b_right.spin(FORWARD)
+
+        if sling_limit.pressing() == False:
+            sling.set_velocity(75, PERCENT)
+        else: 
+            sling.stop()
+
+    Stop()
+        
+def iright(h, s):
+    Reset()
+
+    while inertial_one.rotation(DEGREES) < h-.3:
+        pwr = (abs(h - inertial_one.rotation(DEGREES) * s) + 10)
+        if pwr > 40:
+            pwr = 40
+        
+        f_left.set_velocity(pwr, PERCENT)
+        f_right.set_velocity(pwr, PERCENT)
+        b_left.set_velocity(-pwr, PERCENT)
+        b_right.set_velocity(-pwr, PERCENT)
+
+        f_left.spin(FORWARD)
+        f_right.spin(FORWARD)
+        b_left.spin(FORWARD)
+        b_right.spin(FORWARD)
+
+        if sling_limit.pressing() == False:
+            sling.set_velocity(75, PERCENT)
+        else: 
+            sling.stop()
+
+    Stop()
+    wait(.05, SECONDS)
+
+    while inertial_one.rotation(DEGREES) > h-.3:
+        pwr = (abs(h - inertial_one.rotation(DEGREES) * s) + 10)
+        if pwr > 40:
+            pwr = 40
+        
+        f_left.set_velocity(-pwr, PERCENT)
+        f_right.set_velocity(-pwr, PERCENT)
+        b_left.set_velocity(pwr, PERCENT)
+        b_right.set_velocity(pwr, PERCENT)
+
+        f_left.spin(FORWARD)
+        f_right.spin(FORWARD)
+        b_left.spin(FORWARD)
+        b_right.spin(FORWARD)
+
+        if sling_limit.pressing() == False:
+            sling.set_velocity(75, PERCENT)
+        else: 
+            sling.stop()
+
+    Stop()
+
+def ileftslow(h, s):
+    Reset()
+
+    while inertial_one.rotation(DEGREES) < h-.3:
+        pwr = (abs(h - inertial_one.rotation(DEGREES) * s) + 3)
+        if pwr > 40:
+            pwr = 40
+        
+        f_left.set_velocity(-pwr, PERCENT)
+        f_right.set_velocity(pwr, PERCENT)
+        b_left.set_velocity(pwr, PERCENT)
+        b_right.set_velocity(pwr, PERCENT)
+
+        f_left.spin(FORWARD)
+        f_right.spin(FORWARD)
+        b_left.spin(FORWARD)
+        b_right.spin(FORWARD)
+
+        if sling_limit.pressing() == False:
+            sling.set_velocity(75, PERCENT)
+        else: 
+            sling.stop()
+
+    Stop()
+    wait(.05, SECONDS)
+
+    while inertial_one.rotation(DEGREES) > h-.3:
+        pwr = (abs(h - inertial_one.rotation(DEGREES) * s) + 3)
+        if pwr > 40:
+            pwr = 40
+        
+        f_left.set_velocity(pwr, PERCENT)
+        f_right.set_velocity(pwr, PERCENT)
+        b_left.set_velocity(-pwr, PERCENT)
+        b_right.set_velocity(-pwr, PERCENT)
+
+        f_left.spin(FORWARD)
+        f_right.spin(FORWARD)
+        b_left.spin(FORWARD)
+        b_right.spin(FORWARD)
+
+        if sling_limit.pressing() == False:
+            sling.set_velocity(75, PERCENT)
+        else: 
+            sling.stop()
+
+    Stop()
+        
+def ileft(h, s):
+    Reset()
+
+    while inertial_one.rotation(DEGREES) < h-.3:
+        pwr = (abs(h - inertial_one.rotation(DEGREES) * s) + 10)
+        if pwr > 40:
+            pwr = 40
+        
+        f_left.set_velocity(-pwr, PERCENT)
+        f_right.set_velocity(-pwr, PERCENT)
+        b_left.set_velocity(pwr, PERCENT)
+        b_right.set_velocity(pwr, PERCENT)
+
+        f_left.spin(FORWARD)
+        f_right.spin(FORWARD)
+        b_left.spin(FORWARD)
+        b_right.spin(FORWARD)
+
+        if sling_limit.pressing() == False:
+            sling.set_velocity(75, PERCENT)
+        else: 
+            sling.stop()
+
+    Stop()
+    wait(.05, SECONDS)
+
+    while inertial_one.rotation(DEGREES) > h-.3:
+        pwr = (abs(h - inertial_one.rotation(DEGREES) * s) + 10)
+        if pwr > 40:
+            pwr = 40
+        
+        f_left.set_velocity(pwr, PERCENT)
+        f_right.set_velocity(pwr, PERCENT)
+        b_left.set_velocity(-pwr, PERCENT)
+        b_right.set_velocity(-pwr, PERCENT)
+
+        f_left.spin(FORWARD)
+        f_right.spin(FORWARD)
+        b_left.spin(FORWARD)
+        b_right.spin(FORWARD)
+
+        if sling_limit.pressing() == False:
+            sling.set_velocity(75, PERCENT)
+        else: 
+            sling.stop()
+
+    Stop()
+
+def wideright(h, s, p):
+
+    Reset()
+
+    while inertial_one.rotation(DEGREES) < h - .5:
+        pwr = (abs(h - inertial_one.rotation(DEGREES)) * s) + 3
+
+        f_left.set_velocity(s*pwr, PERCENT)
+        b_left.set_velocity(s*pwr, PERCENT)
+        f_right.set_velocity(s*pwr*p, PERCENT)
+        b_right.set_velocity(s*pwr*p, PERCENT)
+
+        f_left.spin(FORWARD)
+        f_right.spin(FORWARD)
+        b_left.spin(FORWARD)
+        b_right.spin(FORWARD)
+
+def wideleft(h, s, p):
+
+    Reset()
+
+    while inertial_one.rotation(DEGREES) < h - .5:
+        pwr = (abs(h - inertial_one.rotation(DEGREES)) * s) + 3
+
+        f_left.set_velocity(s*pwr*p, PERCENT)
+        b_left.set_velocity(s*pwr*p, PERCENT)
+        f_right.set_velocity(s*pwr, PERCENT)
+        b_right.set_velocity(s*pwr, PERCENT)
+
+        f_left.spin(FORWARD)
+        f_right.spin(FORWARD)
+        b_left.spin(FORWARD)
+        b_right.spin(FORWARD)
+
+#pneumatic functions
+def flapjacks(b):
+    flapjack_1.set(b)
+    flapjack_2.set(b)
+
+def driverflapjacks():
+    global doug
+    doug = doug + 1
+    return doug
+
+#initializing function
+def when_started1():
+    inertial_one.calibrate()
+    inertial_two.calibrate()
+    flapjack_1.set(False)
+    flapjack_2.set(False)
+    sling.set_stopping(BRAKE)
+    climbing.set_stopping(BRAKE)
+    intakes.set_stopping(BRAKE)
+
+#autonomous actions
+def onauton_autonomous_0():
+    braking_mode(BRAKE)
+    braking_mode(COAST)
+
+#driver control settings
+def ondriver_drivercontrol_0():
+    global doug
+
+    controller_1.buttonRight.pressed(driverflapjacks())
+
+    if (sling_limit.pressing() == False):
+        sling.set_velocity(75, PERCENT)
+        sling.spin(FORWARD)
+
+    #drive train
+    if(controller_1.axis3.position() > 5 or controller_1.axis2.position > 5 or controller_1.axis3.position() < -5 or controller_1.axis2.position() < -5):
+        f_left.set_velocity(controller_1.axis3.position(), PERCENT)
+        b_left.set_velocity(controller_1.axis3.position(), PERCENT)
+        f_right.set_velocity(controller_1.axis2.position(), PERCENT)
+        b_right.set_velocity(controller_1.axis2.position(), PERCENT)
+    
+    f_left.spin(FORWARD)
+    f_right.spin(FORWARD)
+    b_left.spin(FORWARD)
+    b_right.spin(FORWARD)
+
+    #intakes
+
+    if (controller_1.buttonL2.pressing()):
+        intakes.set_velocity(75, PERCENT)
+        intakes.spin(FORWARD)
+    elif (controller_1.buttonL1.pressing()):
+        intakes.set_velocity(-75, PERCENT)
+        intakes.spin(FORWARD)
+    else:
+        intakes.stop()
+
+    #slingshot
+    controller_1.buttonR2.pressed(shoot())
+
+    #EMERGENCY SLING REVERSE
+    if(controller_1.buttonA.pressing()):
+        sling.set_velocity(25, PERCENT)
+        sling.spin(REVERSE)
+
+    #climbing
+    if(controller_1.buttonUp.pressing()):
+        climbing.set_velocity(50, PERCENT)
+        climbing.spin(FORWARD)
+    elif(controller_1.buttonDown.pressing()):
+        climbing.set_velocity(50, PERCENT)
+        climbing.spin(REVERSE)
+    else:
+        climbing.stop()
+
+    #pnuematics
+    if(doug % 2 == 1):
+        flapjack_1.set(True)
+        flapjack_2.set(True)
+    else:
+        flapjack_1.set(False)
+        flapjack_2.set(False)
+
+#competition template for autonomous actions
+def vexcode_auton_function():
+    auton_task_0 = Thread(onauton_autonomous_0)
+
+    while (competition.is_enabled() and competition.is_autonomous):
+        wait(10, MSEC)
+        auton_task_0.stop()
+
+#competition template for driver control actions
+def vexcode_driver_function():
+    driver_control_task_0 = Thread(ondriver_drivercontrol_0)
+
+    while(competition.is_driver_control() and competition.is_enabled()):
+        wait(10, MSEC)
+        driver_control_task_0.stop()
+
+#competition for autonomous and driver
+competition = Competition(vexcode_driver_function, vexcode_auton_function)
+
+#initializing
+when_started1()
